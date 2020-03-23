@@ -1,12 +1,25 @@
 import numpy as numpy
 import pandas as pd
 
-dataSets = ['Confirmed', 'Recovered', 'Deaths']
+import urllib.request
+url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
+print ("download start!")
+filename, headers = urllib.request.urlretrieve(url, filename="Confirmed.csv")
+url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
+filename, headers = urllib.request.urlretrieve(url, filename="Deaths.csv")
+url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
+filename, headers = urllib.request.urlretrieve(url, filename="Recovered.csv")
 
+print ("latest data download complete!")
+
+print ('Processing data for Tableau ....')
+dataSets = ['Confirmed', 'Recovered', 'Deaths']
+#prefix = 'time_series_19-covid-'
+prefix = ''
 datas = {}
 
 for data_name in dataSets:
-    df = pd.read_csv(data_name + '.csv')
+    df = pd.read_csv(prefix + data_name + '.csv')
     max_ix = df.shape[0]
     df.loc[max_ix,:]= df[df['Country/Region'] != 'China'].sum(axis=0)
     df.loc[max_ix,'Country/Region'] = 'Rest of the World'
@@ -24,5 +37,7 @@ df_cd = datas['Confirmed'].merge(datas['Deaths'].loc[:,['Country/Region','Provin
 df = df_cd.merge(datas['Recovered'].loc[:,['Country/Region','Province/State','date','Recovered']], on=['Country/Region', 'Province/State','date'], how='left')
 
 print(df.describe())
+print('Lastest date: ')
+print(df.loc[:,'date'].unique()[-1])
 
 df.to_csv('CovData.csv',index=False)
