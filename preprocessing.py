@@ -2,13 +2,18 @@ import numpy as numpy
 import pandas as pd
 
 import urllib.request
+
 url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv"
+url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
 print ("download start!")
 filename, headers = urllib.request.urlretrieve(url, filename="Confirmed.csv")
 url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv"
+url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
 filename, headers = urllib.request.urlretrieve(url, filename="Deaths.csv")
 url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv"
+url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
 filename, headers = urllib.request.urlretrieve(url, filename="Recovered.csv")
+
 
 print ("latest data download complete!")
 
@@ -34,8 +39,10 @@ for data_name in dataSets:
 
 df_cd = datas['Confirmed'].merge(datas['Deaths'].loc[:,['Country/Region','Province/State','date','Deaths']], on=['Country/Region','Province/State', 'date'], how='left')
 
-df = df_cd.merge(datas['Recovered'].loc[:,['Country/Region','Province/State','date','Recovered']], on=['Country/Region', 'Province/State','date'], how='left')
-
+df = df_cd.merge(datas['Recovered'].loc[:,['Country/Region','Province/State','date','Recovered']], on=['Country/Region', 'Province/State','date'], how='outer')
+df.sort_values(by=['Country/Region','Province/State'],inplace=True)
+df['Recovered'] = df['Recovered'].ffill()
+df.to_csv('test.csv',index=False)
 print(df.describe())
 print('Lastest date: ')
 print(df.loc[:,'date'].unique()[-1])
