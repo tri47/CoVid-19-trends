@@ -26,7 +26,8 @@ datas = {}
 for data_name in dataSets:
     df = pd.read_csv(prefix + data_name + '.csv')
     max_ix = df.shape[0]
-    df.loc[max_ix,:]= df[df['Country/Region'] != 'China'].sum(axis=0)
+    # add all countries that are not US
+    df.loc[max_ix,:]= df[df['Country/Region'] != 'US'].sum(axis=0)
     df.loc[max_ix,'Country/Region'] = 'Rest of the World'
     df.loc[max_ix+1,:]= df[df['Country/Region'] != 'Rest of the World'].sum(axis=0)
     df.loc[max_ix+1,'Country/Region'] = 'Worldwide'
@@ -36,11 +37,12 @@ for data_name in dataSets:
     Cases.drop(['month','day','year','dateString'],axis=1,inplace=True)
     datas[data_name] = Cases
 
-
+# Join all 3 data sets
 df_cd = datas['Confirmed'].merge(datas['Deaths'].loc[:,['Country/Region','Province/State','date','Deaths']], on=['Country/Region','Province/State', 'date'], how='left')
-
 df = df_cd.merge(datas['Recovered'].loc[:,['Country/Region','Province/State','date','Recovered']], on=['Country/Region', 'Province/State','date'], how='outer')
+
 df.sort_values(by=['Country/Region','Province/State'],inplace=True)
+# Fill null values with previous data
 df['Recovered'] = df['Recovered'].ffill()
 df.to_csv('test.csv',index=False)
 print(df.describe())
